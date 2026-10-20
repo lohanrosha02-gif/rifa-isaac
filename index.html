@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#e6f7ff">
+  <meta name="theme-color" content="#0c0f11">
   <meta name="description" content="Painel privado para organizar o Chá Rifa do Isaac, com controle dos números, nomes, celulares e pagamentos.">
   <title>Chá Rifa do Isaac | Painel de Controle</title>
   <style>
@@ -21,6 +21,82 @@
 @media(max-width:390px){.number-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.price-stamp{min-width:94px}.price-stamp strong{font-size:15px}.hero-art{height:150px}.stat-card{flex:1 1 calc(50% - 7px)}}
 @media print{body{background:#fff}.page-shell{max-width:none}.header-actions,.controls-row,.editor-panel,.buyers-actions,.footer,.panel-head .btn{display:none!important}.hero-art{height:155px}.workspace{display:block}.numbers-panel{width:100%;break-inside:avoid}.number-grid{grid-template-columns:repeat(11,1fr)}.num-button{font-size:10px;height:28px;aspect-ratio:auto}.stats{display:flex;flex-wrap:nowrap}.stat-card{padding:8px}.stat-card strong{font-size:14px}.buyers-panel{break-before:page}.buyers-table{white-space:normal}}
 
+
+/* Identidade visual compartilhada | Central de Links.
+   Apenas a interface muda; arte do cartaz e regras permanecem intactas. */
+@media screen {
+:root{color-scheme:dark;--navy:#141819;--deep:#f3f7f4;--blue:#c0f16e;--blue-soft:#253525;--blue-50:#191e20;--sand:#2b261e;--orange:#f3b36f;--mint:#263f35;--green:#c0f16e;--ink:#f3f7f4;--muted:#98a5a0;--border:#293132;--shadow:0 16px 48px rgba(0,0,0,.20)}
+body{background:radial-gradient(circle at 100% 0%,rgba(192,241,110,.055),transparent 40%),#0c0f11;color:#f3f7f4}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline-color:#c0f16e}
+.brand-mark{background:#253525;border-color:#3c5132;color:#c0f16e}
+.brand strong,.hero h1,.panel-head h2,.editor-panel h2,.buyers-heading h2,.stat-card strong{color:#f3f7f4}
+.brand strong span,.heart,.eyebrow{color:#c0f16e}
+.btn-primary{background:#c0f16e;border-color:#c0f16e;color:#192316;box-shadow:none}
+.btn-primary:hover{background:#d5ff95}
+.btn-ghost,.btn-outline,.btn-subtle{background:#191e20;border-color:#293132;color:#e1ede3}
+.btn-ghost:hover,.btn-outline:hover,.btn-subtle:hover{background:#253028}
+.hero{background:#141819;border-color:#293132}
+.hero-art{background:linear-gradient(90deg,#141819,#253525)}
+.hero-foot{background:linear-gradient(115deg,#141819,#191e20)}
+.price-stamp{background:#253525;border-color:#547444}
+.price-stamp small,.price-stamp span,.price-stamp strong{color:#f3f7f4}
+.stat-card,.stat-revenue,.stat-diapers-paid{background:#141819;border-color:#293132;box-shadow:none}
+.stat-total,.stat-free{border-top-color:#98a5a0}
+.stat-reserved{border-top-color:#f3b36f}
+.stat-paid,.stat-revenue,.stat-diapers-paid{border-top-color:#c0f16e}
+.panel{background:#141819;border-color:#293132}
+.filter{background:#191e20;color:#b4c2b7;border-color:#293132}
+.filter.active{background:#c0f16e;color:#162011;border-color:#c0f16e}
+.search-field{background:#191e20;border-color:#34413b}
+.search-field span{color:#c0f16e}
+.search-field input{color:#f3f7f4}
+.search-field input::placeholder{color:#84958a}
+.legend{color:#b1c0b4}
+.legend-dot{border-color:#48584c}
+.legend-free{background:#222d26}
+.legend-reserved{background:#704921;border-color:#9d703a}
+.legend-paid{background:#365949;border-color:#649c77}
+.num-button{background:#1c2821;border-color:#354d38;color:#dff5d0}
+.num-button:hover{box-shadow:0 0 0 1px #a6d96d}
+.num-button.range-m{background:#26231e;border-color:#514332;color:#f0d7ae}
+.num-button.range-g{background:#202f29;border-color:#345342;color:#c5edd1}
+.num-button.reservado{background:#71481c;color:#fff0da;border-color:#bf873e}
+.num-button.pago{background:#315b46;color:#f3fff4;border-color:#63b28b}
+.num-button.selected{outline-color:#c0f16e}
+.diaper-guide{background:#191e20;border-color:#3b4d3d}
+.diaper-guide>strong{color:#c0f16e}
+.diaper-chip{color:#d6e3d7}
+.diaper-chip b{background:#29332b;color:#e6f3df}
+.diaper-p{background:#202d27}
+.diaper-m{background:#30271c}
+.diaper-g{background:#1d3529}
+.selected-number{background:#253525;border-color:#537547;color:#c0f16e}
+.status-fieldset legend,.field>span{color:#dce7dc}
+.status-choice span,.payment-choice span{background:#191e20;border-color:#34413a;color:#cad8cd}
+.status-choice input[value=livre]:checked+span{background:#27382b;color:#c0f16e;border-color:#70934b}
+.status-choice input[value=reservado]:checked+span{background:#4c3821;color:#f9d9a4;border-color:#bc853c}
+.status-choice input[value=pago]:checked+span{background:#2a4d3d;color:#bef0d0;border-color:#5b9c76}
+.payment-choice input[value=""]:checked+span{background:#2b3133;color:#e2ede5;border-color:#6b7d73}
+.payment-choice input[value=pix]:checked+span{background:#254638;color:#b9f0d2;border-color:#4d9575}
+.payment-choice input[value=fralda]:checked+span{background:#343b2a;color:#d9edbd;border-color:#849856}
+.field input,.field textarea{background:#0f1513;border-color:#344139;color:#f3f7f4}
+.field input::placeholder,.field textarea::placeholder{color:#84958a}
+.field span small,.field>small,.payment-hint{color:#98a5a0}
+.privacy-note,.empty-state{background:#191e20;border-color:#293132;color:#98a5a0}
+.privacy-note strong{color:#c0f16e}
+.buyers-table th{background:#253525;color:#e7f5e3}
+.buyers-table td{border-color:#293132;color:#d7e5d8}
+.buyers-table td strong{color:#c0f16e}
+.buyers-table tbody tr:hover{background:#1e2922}
+.row-action{background:#253525;border-color:#45623e;color:#c0f16e}
+.state-pill.reservado{background:#4c3821;color:#f9d9a4}
+.state-pill.pago{background:#2a4d3d;color:#b9f0d2}
+.footer{color:#98a5a0}
+.toast{background:#263a26;color:#eaf9e5}
+.poster-dialog{background:#141819;border:1px solid #293132}
+.modal-title{color:#f3f7f4}
+.close-modal{background:#253525;color:#f3f7f4}
+}
 </style>
 </head>
 <body>
