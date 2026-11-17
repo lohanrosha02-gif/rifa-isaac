@@ -21,6 +21,11 @@
 @media(max-width:390px){.number-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.price-stamp{min-width:94px}.price-stamp strong{font-size:15px}.hero-art{height:150px}.stat-card{flex:1 1 calc(50% - 7px)}}
 @media print{body{background:#fff}.page-shell{max-width:none}.header-actions,.controls-row,.editor-panel,.buyers-actions,.footer,.panel-head .btn{display:none!important}.hero-art{height:155px}.workspace{display:block}.numbers-panel{width:100%;break-inside:avoid}.number-grid{grid-template-columns:repeat(11,1fr)}.num-button{font-size:10px;height:28px;aspect-ratio:auto}.stats{display:flex;flex-wrap:nowrap}.stat-card{padding:8px}.stat-card strong{font-size:14px}.buyers-panel{break-before:page}.buyers-table{white-space:normal}}
 
+
+.without-number-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin-bottom:20px;padding:18px;border:1px solid #d7eaf3;background:#f7fcff;border-radius:14px}
+.without-number-form .field{margin:0}.without-number-form .field select{width:100%;border:1px solid #cbdfea;border-radius:11px;background:#fff;padding:12px;color:#073b67;font:inherit;font-size:13px}
+.without-number-notes,.without-number-actions{grid-column:1/-1}.without-number-actions{display:flex;gap:10px;flex-wrap:wrap}.without-number-form [hidden]{display:none!important}
+@media(max-width:590px){.without-number-form{grid-template-columns:1fr;padding:12px}}
 </style>
 </head>
 <body>
@@ -159,6 +164,23 @@
       <p id="buyersEmpty" class="empty-state">Ainda não há números cadastrados. Escolha um quadradinho acima para começar!</p>
     </section>
 
+
+    <section class="panel buyers-panel" aria-labelledby="withoutNumberTitle">
+      <div class="buyers-heading"><div><span class="eyebrow">CONTRIBUIÇÕES AVULSAS</span><h2 id="withoutNumberTitle">Sem número 💙</h2><p>Cadastre quem ajudou sem escolher número da rifa. Esses registros não entram no sorteio.</p></div></div>
+      <form id="withoutNumberForm" class="without-number-form" novalidate>
+        <input type="hidden" id="withoutNumberId">
+        <label class="field"><span>Nome da pessoa *</span><input id="withoutNumberName" maxlength="90" placeholder="Nome de quem contribuiu" required></label>
+        <label class="field"><span>Telefone (opcional)</span><input id="withoutNumberPhone" type="tel" inputmode="numeric" maxlength="17" placeholder="(83) 99999-9999"></label>
+        <label class="field"><span>Situação</span><select id="withoutNumberStatus"><option value="reservado">Pendente / combinado</option><option value="pago">Recebido</option></select></label>
+        <label class="field"><span>Tipo de contribuição</span><select id="withoutNumberMethod"><option value="">A definir</option><option value="pix">Pix</option><option value="fralda">Fralda + mimo</option></select></label>
+        <label class="field without-number-notes"><span>Observações (opcional)</span><textarea id="withoutNumberNotes" rows="2" maxlength="300" placeholder="Valor, tamanho da fralda, data, mimo..."></textarea></label>
+        <div class="without-number-actions"><button class="btn btn-primary" type="submit" id="withoutNumberSave">Adicionar sem número</button><button class="btn btn-ghost" type="button" id="withoutNumberCancel" hidden>Cancelar edição</button></div>
+      </form>
+      <p id="withoutNumberError" class="form-error hidden" role="alert"></p>
+      <div class="table-scroll"><table class="buyers-table"><thead><tr><th>Nome</th><th>Telefone</th><th>Situação</th><th>Contribuição</th><th>Observações</th><th>Ações</th></tr></thead><tbody id="withoutNumberBody"></tbody></table></div>
+      <p class="empty-state" id="withoutNumberEmpty">Nenhuma contribuição sem número cadastrada ainda.</p>
+    </section>
+
     <footer class="footer">
       <span>Feito com carinho para o Chá Rifa do Isaac <span aria-hidden="true">♥</span></span>
       <div><span id="saveNotice">Salvamento automático neste navegador</span><button type="button" id="clearAllBtn" class="danger-link">Apagar todos os registros</button></div>
@@ -174,7 +196,7 @@
   const PRICE = 30;
   const STATUS = ['livre', 'reservado', 'pago'];
   const $ = id => document.getElementById(id);
-  const state = {records: {}, selected:0, filter:'todos', search:'', storageOk:true};
+  const state = {records: {}, withoutNumber:[], selected:0, filter:'todos', search:'', storageOk:true};
   let toastTimer;
 
   function digits(value){ return String(value || '').replace(/\D/g,''); }
@@ -220,6 +242,7 @@
         clean[n]={status:r.status,name:String(r.name||'').slice(0,90),phone:normalizedPhone(r.phone).slice(0,11),notes:String(r.notes||'').slice(0,300),paymentMethod:['pix','fralda'].includes(r.paymentMethod)?r.paymentMethod:'',updatedAt:String(r.updatedAt||''),createdAt:String(r.createdAt||'')};
       }
       state.records=clean;
+      state.withoutNumber=Array.isArray(obj.withoutNumber)?obj.withoutNumber.filter(r=>r&&typeof r.id==='string'&&typeof r.name==='string'&&['reservado','pago'].includes(r.status)).map(r=>({id:r.id,name:r.name.slice(0,90),phone:normalizedPhone(r.phone).slice(0,11),status:r.status,paymentMethod:['pix','fralda'].includes(r.paymentMethod)?r.paymentMethod:'',notes:String(r.notes||'').slice(0,300),createdAt:String(r.createdAt||''),updatedAt:String(r.updatedAt||'')})):[];
     } catch(e){console.warn('Não foi possível acessar o armazenamento local.', e);state.storageOk=false;}
   }
   // Importação inicial, uma única vez por navegador, das marcações da foto.
@@ -243,7 +266,7 @@
     }catch(e){console.warn('Não foi possível importar a foto:',e);return 0;}
   }
   function saveStorage(){
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify({app:'cha-rifa-isaac',version:1,numbers:state.records,updatedAt:new Date().toISOString()}));state.storageOk=true;$('saveNotice').textContent='Salvo automaticamente neste navegador';}
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify({app:'cha-rifa-isaac',version:1,numbers:state.records,withoutNumber:state.withoutNumber,updatedAt:new Date().toISOString()}));state.storageOk=true;$('saveNotice').textContent='Salvo automaticamente neste navegador';}
     catch(e){state.storageOk=false;$('saveNotice').textContent='Atenção: navegador não salvou os dados';showToast('Não foi possível salvar. Exporte um backup agora.');}
   }
   function showToast(message){
@@ -342,7 +365,7 @@
   function downloadBlob(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);}
   function dateTag(){return new Date().toISOString().slice(0,10);}
   function exportBackup(){
-    const backup={app:'cha-rifa-isaac',version:1,exportedAt:new Date().toISOString(),numbers:state.records};
+    const backup={app:'cha-rifa-isaac',version:1,exportedAt:new Date().toISOString(),numbers:state.records,withoutNumber:state.withoutNumber};
     downloadBlob(new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'}),`Chá_Rifa_Isaac_backup_${dateTag()}.json`);
     showToast('Backup dos números baixado! Guarde o arquivo em local seguro.');
   }
@@ -350,6 +373,7 @@
   function exportCsv(){
     const rows=[['Número','Tam. fralda','Situação','Pagamento','Comprador','Celular','Observações','Última atualização']];
     for(let n=0;n<=MAX_NUMBER;n++){const r=state.records[n];if(!r)continue;rows.push([n,diaperFor(n),statusText(r.status),paymentText(r),r.name,formatPhone(r.phone),r.notes,r.updatedAt?new Date(r.updatedAt).toLocaleString('pt-BR'):'']);}
+    for(const r of state.withoutNumber)rows.push(['Sem número','—',statusText(r.status),paymentText(r),r.name,formatPhone(r.phone),r.notes,r.updatedAt?new Date(r.updatedAt).toLocaleString('pt-BR'):'']);
     const csv='\uFEFF'+rows.map(row=>row.map(csvCell).join(';')).join('\r\n');
     downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),`Chá_Rifa_Isaac_compradores_${dateTag()}.csv`);showToast('Planilha CSV exportada!');
   }
@@ -435,8 +459,8 @@
         clean[n]={status:r.status,name:r.name.trim().slice(0,90),phone,notes:String(r.notes||'').slice(0,300),paymentMethod:['pix','fralda'].includes(r.paymentMethod)?r.paymentMethod:'',updatedAt:String(r.updatedAt||''),createdAt:String(r.createdAt||'')};
       }
       const count=Object.keys(clean).length;
-      if(!confirm(`Importar ${count} número(s)? Isso SUBSTITUIRÁ os cadastros atuais deste navegador. Continue apenas se tiver certeza.`))return;
-      state.records=clean;saveStorage();renderAll();showToast(`${count} cadastro(s) importado(s) com sucesso.`);
+      if(!confirm(`Importar ${count} número(s) e ${Array.isArray(obj.withoutNumber)?obj.withoutNumber.length:0} contribuição(ões) sem número? Isso SUBSTITUIRÁ os cadastros atuais deste navegador. Continue apenas se tiver certeza.`))return;
+      state.records=clean;state.withoutNumber=Array.isArray(obj.withoutNumber)?obj.withoutNumber.filter(r=>r&&typeof r.id==='string'&&typeof r.name==='string'&&['reservado','pago'].includes(r.status)).map(r=>({id:r.id,name:r.name.slice(0,90),phone:normalizedPhone(r.phone).slice(0,11),status:r.status,paymentMethod:['pix','fralda'].includes(r.paymentMethod)?r.paymentMethod:'',notes:String(r.notes||'').slice(0,300),createdAt:String(r.createdAt||''),updatedAt:String(r.updatedAt||'')})):[];saveStorage();renderAll();renderWithoutNumber();showToast(`${count} número(s) e ${state.withoutNumber.length} contribuição(ões) sem número importados.`);
     }catch(err){showToast(err?.message||'Não foi possível ler o backup.');}
     finally{$('importFile').value='';}
   }
@@ -459,8 +483,45 @@
     document.querySelectorAll('.filter').forEach(f=>{const isActive=f===btn;f.classList.toggle('active',isActive);f.setAttribute('aria-pressed',String(isActive));});
     renderGrid();
   }
+
+  function resetWithoutNumberForm(){
+    $('withoutNumberForm').reset();$('withoutNumberId').value='';$('withoutNumberSave').textContent='Adicionar sem número';$('withoutNumberCancel').hidden=true;$('withoutNumberError').classList.add('hidden');
+  }
+  function renderWithoutNumber(){
+    const tbody=$('withoutNumberBody');tbody.replaceChildren();
+    $('withoutNumberEmpty').classList.toggle('hidden',state.withoutNumber.length>0);
+    for(const r of state.withoutNumber){
+      const tr=document.createElement('tr');
+      for(const val of [r.name,formatPhone(r.phone)||'—',statusText(r.status),paymentText(r),r.notes||'—']){
+        const td=document.createElement('td');td.textContent=val;tr.append(td);
+      }
+      const actions=document.createElement('td');
+      const edit=document.createElement('button');edit.type='button';edit.className='row-action';edit.textContent='Editar';edit.dataset.wnEdit=r.id;
+      const del=document.createElement('button');del.type='button';del.className='row-action';del.textContent='Excluir';del.dataset.wnDelete=r.id;del.style.marginLeft='6px';
+      actions.append(edit,del);tr.append(actions);tbody.append(tr);
+    }
+  }
+  function saveWithoutNumber(ev){
+    ev.preventDefault();const name=$('withoutNumberName').value.trim().replace(/\\s+/g,' '),phone=normalizedPhone($('withoutNumberPhone').value),status=$('withoutNumberStatus').value,paymentMethod=$('withoutNumberMethod').value,notes=$('withoutNumberNotes').value.trim();
+    const error=$('withoutNumberError');error.classList.add('hidden');
+    let msg='';
+    if(name.length<2)msg='Informe o nome da pessoa.';
+    else if(phone&&phone.length!==10&&phone.length!==11)msg='Confira o telefone com DDD ou deixe o campo vazio.';
+    else if(status==='pago'&&!paymentMethod)msg='Selecione Pix ou Fralda para a contribuição recebida.';
+    if(msg){error.textContent=msg;error.classList.remove('hidden');return;}
+    const old=state.withoutNumber.find(x=>x.id===$('withoutNumberId').value),now=new Date().toISOString();
+    const record={id:old?.id||'sn-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9),name,phone,status,paymentMethod,notes,createdAt:old?.createdAt||now,updatedAt:now};
+    if(old)state.withoutNumber=state.withoutNumber.map(x=>x.id===old.id?record:x);else state.withoutNumber.push(record);
+    saveStorage();renderWithoutNumber();resetWithoutNumberForm();showToast('Contribuição sem número salva!');
+  }
+  function actWithoutNumber(ev){
+    const edit=ev.target.closest('[data-wn-edit]'),del=ev.target.closest('[data-wn-delete]');if(!edit&&!del)return;
+    const id=(edit||del).dataset[edit?'wnEdit':'wnDelete'];const record=state.withoutNumber.find(r=>r.id===id);if(!record)return;
+    if(del){if(!confirm('Excluir a contribuição sem número de '+record.name+'?'))return;state.withoutNumber=state.withoutNumber.filter(r=>r.id!==id);saveStorage();renderWithoutNumber();if($('withoutNumberId').value===id)resetWithoutNumberForm();showToast('Contribuição excluída.');return;}
+    $('withoutNumberId').value=id;$('withoutNumberName').value=record.name;$('withoutNumberPhone').value=formatPhone(record.phone);$('withoutNumberStatus').value=record.status;$('withoutNumberMethod').value=record.paymentMethod;$('withoutNumberNotes').value=record.notes;$('withoutNumberSave').textContent='Salvar alterações';$('withoutNumberCancel').hidden=false;$('withoutNumberForm').scrollIntoView({behavior:'smooth',block:'center'});
+  }
   function init(){
-    storageCheck();importInitialImageMarks();renderAll();
+    storageCheck();importInitialImageMarks();renderAll();renderWithoutNumber();
     $('numberGrid').addEventListener('click',ev=>{const btn=ev.target.closest('[data-number]');if(btn)selectNumber(Number(btn.dataset.number));});
     $('buyersBody').addEventListener('click',ev=>{const btn=ev.target.closest('[data-edit]');if(btn)selectNumber(Number(btn.dataset.edit));});
     document.querySelector('.filters').addEventListener('click',updateFilters);
@@ -468,6 +529,9 @@
     $('buyerPhone').addEventListener('blur',ev=>{const d=normalizedPhone(ev.target.value);if(d.length===10||d.length===11)ev.target.value=formatPhone(d);});
     document.querySelectorAll('input[name="status"]').forEach(input=>input.addEventListener('change',syncPaymentVisibility));
     $('buyerForm').addEventListener('submit',saveSelected);
+    $('withoutNumberForm').addEventListener('submit',saveWithoutNumber);
+    $('withoutNumberCancel').addEventListener('click',resetWithoutNumberForm);
+    $('withoutNumberBody').addEventListener('click',actWithoutNumber);
     $('releaseBtn').addEventListener('click',releaseSelected);
     $('repeatBuyerBtn').addEventListener('click',repeatBuyer);
     $('whatsappBtn').addEventListener('click',contactSelected);
@@ -481,10 +545,10 @@
     $('importBtn').addEventListener('click',()=>$('importFile').click());
     $('importFile').addEventListener('change',ev=>importBackup(ev.target.files[0]));
     $('clearAllBtn').addEventListener('click',()=>{
-      if(!Object.keys(state.records).length){showToast('Não existem cadastros para apagar.');return;}
+      if(!Object.keys(state.records).length&&!state.withoutNumber.length){showToast('Não existem cadastros para apagar.');return;}
       if(!confirm('Apagar TODOS os cadastros? Esta ação é irreversível sem um backup JSON.'))return;
       if(!confirm('Última confirmação: apagar todos os nomes, celulares, reservas e pagamentos deste navegador?'))return;
-      state.records={};saveStorage();renderAll();showToast('Todos os cadastros foram apagados.');
+      state.records={};state.withoutNumber=[];saveStorage();renderAll();renderWithoutNumber();showToast('Todos os cadastros foram apagados.');
     });
     const dialog=$('posterDialog');$('viewPosterBtn').addEventListener('click',()=>dialog.showModal());$('closePosterBtn').addEventListener('click',()=>dialog.close());
     dialog.addEventListener('click',ev=>{if(ev.target===dialog)dialog.close();});
