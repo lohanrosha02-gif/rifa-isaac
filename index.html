@@ -222,6 +222,26 @@
       state.records=clean;
     } catch(e){console.warn('Não foi possível acessar o armazenamento local.', e);state.storageOk=false;}
   }
+  // Importação inicial, uma única vez por navegador, das marcações da foto.
+  // Não altera cadastros já existentes nem considera reservas como pagamentos.
+  const IMAGE_MARKED_NUMBERS=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,17,19,20,21,22,23,24,25,26,27,29,31,34,37,43,45,46,47,48,50,51,52,60,64,69,72,75,81,83,85,90,97,98,100];
+  const IMAGE_IMPORT_KEY='isaac-cha-rifa-foto-2026-11-17-importada-v1';
+  function importInitialImageMarks(){
+    try{
+      if(localStorage.getItem(IMAGE_IMPORT_KEY)==='1')return;
+      const now=new Date().toISOString();
+      let count=0;
+      for(const n of IMAGE_MARKED_NUMBERS){
+        if(state.records[n])continue;
+        state.records[n]={status:'reservado',name:'',phone:'',notes:'Marcado com X na imagem recebida; nome e pagamento ainda não informados.',paymentMethod:'',createdAt:now,updatedAt:now};
+        count++;
+      }
+      // Salvar os registros antes da marcação de importação.
+      saveStorage();
+      if(state.storageOk)localStorage.setItem(IMAGE_IMPORT_KEY,'1');
+      return count;
+    }catch(e){console.warn('Não foi possível importar a foto:',e);return 0;}
+  }
   function saveStorage(){
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify({app:'cha-rifa-isaac',version:1,numbers:state.records,updatedAt:new Date().toISOString()}));state.storageOk=true;$('saveNotice').textContent='Salvo automaticamente neste navegador';}
     catch(e){state.storageOk=false;$('saveNotice').textContent='Atenção: navegador não salvou os dados';showToast('Não foi possível salvar. Exporte um backup agora.');}
@@ -440,7 +460,7 @@
     renderGrid();
   }
   function init(){
-    storageCheck();renderAll();
+    storageCheck();importInitialImageMarks();renderAll();
     $('numberGrid').addEventListener('click',ev=>{const btn=ev.target.closest('[data-number]');if(btn)selectNumber(Number(btn.dataset.number));});
     $('buyersBody').addEventListener('click',ev=>{const btn=ev.target.closest('[data-edit]');if(btn)selectNumber(Number(btn.dataset.edit));});
     document.querySelector('.filters').addEventListener('click',updateFilters);
