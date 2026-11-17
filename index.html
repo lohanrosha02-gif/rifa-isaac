@@ -228,6 +228,9 @@
   const IMAGE_IMPORT_KEY='isaac-cha-rifa-foto-2026-11-17-importada-v1';
   function importInitialImageMarks(){
     try{
+      // Nunca importar a foto automaticamente se já houver dados salvos neste navegador.
+      // Mesmo um registro vazio ou inválido precisa ser preservado para recuperação.
+      if(localStorage.getItem(STORAGE_KEY)!==null)return;
       if(localStorage.getItem(IMAGE_IMPORT_KEY)==='1')return;
       const now=new Date().toISOString();
       let count=0;
