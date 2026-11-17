@@ -502,7 +502,7 @@
     }
   }
   function saveWithoutNumber(ev){
-    ev.preventDefault();const name=$('withoutNumberName').value.trim().replace(/\\s+/g,' '),phone=normalizedPhone($('withoutNumberPhone').value),status=$('withoutNumberStatus').value,paymentMethod=$('withoutNumberMethod').value,notes=$('withoutNumberNotes').value.trim();
+    ev.preventDefault();const name=$('withoutNumberName').value.trim().replace(/\s+/g,' '),phone=normalizedPhone($('withoutNumberPhone').value),status=$('withoutNumberStatus').value,paymentMethod=$('withoutNumberMethod').value,notes=$('withoutNumberNotes').value.trim();
     const error=$('withoutNumberError');error.classList.add('hidden');
     let msg='';
     if(name.length<2)msg='Informe o nome da pessoa.';
