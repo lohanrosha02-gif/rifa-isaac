@@ -455,7 +455,7 @@
       for(const [key,r] of Object.entries(obj.numbers)){
         const n=Number(key);if(!Number.isInteger(n)||n<0||n>MAX_NUMBER)throw Error('O backup contém número inválido.');
         if(!isValidRecord(r)||typeof r.name!=='string'||typeof r.phone!=='string')throw Error(`Cadastro inválido para o número ${n}.`);
-        const phone=normalizedPhone(r.phone);if(r.name.trim().length<2||(phone.length!==10&&phone.length!==11))throw Error(`Nome ou telefone inválido no número ${n}.`);
+        const phone=normalizedPhone(r.phone);if((r.name.trim().length<2||(phone.length!==10&&phone.length!==11))&&!(r.status==='reservado'&&!r.name.trim()&&!phone))throw Error(`Nome ou telefone inválido no número ${n}.`);
         clean[n]={status:r.status,name:r.name.trim().slice(0,90),phone,notes:String(r.notes||'').slice(0,300),paymentMethod:['pix','fralda'].includes(r.paymentMethod)?r.paymentMethod:'',updatedAt:String(r.updatedAt||''),createdAt:String(r.createdAt||'')};
       }
       const count=Object.keys(clean).length;
